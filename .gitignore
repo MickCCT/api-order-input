@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Configuration
+config/config.json
+
+# Data and logs
+data/
+*.db
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+*.tmp
+temp/
+*temp*.json
+
+# Backup files
+*-bkp-*.js
+*-bkp-*.json
+*-bckp.js
+*-wip.js
