@@ -1,9 +1,8 @@
 {
   "p21": {
-    "middlewareUrl": "https://your-p21-middleware-server.com",
+    "middlewareUrl": "https://crosscreek-api.epicordistribution.com",
     "apiVersion": "v2",
     "endpoint": "/uiserver0/api/v2/transaction",
-    "bearerToken": "YOUR_BEARER_TOKEN_HERE",
     "companyId": "YOUR_COMPANY_ID",
     "locationId": "YOUR_LOCATION_ID",
     "defaultCustomerId": {

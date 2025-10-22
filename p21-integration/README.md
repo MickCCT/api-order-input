@@ -42,7 +42,7 @@ p21-integration/
 
 - Node.js 16+ and npm
 - Access to Epicor P21 middleware server
-- P21 API bearer token
+- P21 API username and password
 
 ### Setup Steps
 
@@ -57,21 +57,34 @@ p21-integration/
    npm install
    ```
 
-3. **Configure the system**:
+3. **Set up environment variables**:
    ```bash
-   cd ../config
+   cd ../
+   cp .env.example .env
+   ```
+
+   Edit `.env` and add your P21 credentials:
+   ```
+   ERP_USERNAME=your_p21_username
+   ERP_PASSWORD=your_p21_password
+   ```
+
+   The system will automatically obtain fresh bearer tokens as needed.
+
+4. **Configure the system**:
+   ```bash
+   cd config
    cp config.example.json config.json
    ```
 
-4. **Edit config.json** with your settings:
-   - `p21.middlewareUrl`: Your P21 middleware server URL
-   - `p21.bearerToken`: Your P21 API bearer token
+5. **Edit config.json** with your settings:
+   - `p21.middlewareUrl`: Already set to Cross Creek's P21 server
    - `p21.companyId`: Your company ID in P21
    - `p21.locationId`: Your location ID in P21
-   - `p21.defaultCustomerId`: Customer IDs for Amazon, eBay, Walmart
+   - `p21.defaultCustomerId`: Customer IDs (already configured)
    - `fileWatcher.paths`: Update file paths to match your system
 
-5. **Initialize the database**:
+6. **Initialize the database**:
    ```bash
    cd ../backend
    npm run init-db
@@ -147,8 +160,25 @@ The system uses P21's Transaction API v2. Key configuration:
 
 - **Endpoint**: `/uiserver0/api/v2/transaction`
 - **Format**: XML (more reliable than JSON for POST operations)
-- **Authentication**: Bearer token
+- **Authentication**: Automatic token management with username/password
 - **Order Status**: Set to "Pending Review" to prevent automatic processing
+
+### Authentication
+
+The system handles P21 authentication automatically:
+
+1. **Credentials**: Store your P21 username and password in `.env` file
+2. **Token Management**: The system automatically:
+   - Requests a fresh bearer token when needed
+   - Caches the token for 50 minutes
+   - Automatically refreshes expired tokens
+   - Handles token errors gracefully
+3. **Security**: Never commit `.env` file to version control (already in .gitignore)
+
+**Why this approach?**
+- Bearer tokens expire after ~60 minutes
+- Manual token management is error-prone
+- Automatic refresh ensures uninterrupted operation
 
 ### File Watcher Configuration
 
@@ -234,7 +264,7 @@ Key tables:
 ### P21 Submission Failures
 
 1. Verify P21 middleware URL is correct
-2. Check bearer token is valid
+2. Check credentials in `.env` file are correct
 3. Verify company and location IDs
 4. Check P21 XML format in order details
 5. Review error message in order record
@@ -244,7 +274,8 @@ Key tables:
 1. Verify P21 middleware server is accessible
 2. Check firewall settings
 3. Verify network connectivity
-4. Test with: `curl -H "Authorization: Bearer YOUR_TOKEN" YOUR_MIDDLEWARE_URL`
+4. Check credentials: Ensure `ERP_USERNAME` and `ERP_PASSWORD` in `.env` are correct
+5. Check logs for authentication errors: `tail -f data/logs/error.log`
 
 ## Migration from Old System
 
@@ -256,10 +287,11 @@ The new system maintains compatibility with the old master JSON files:
 
 ## Security Considerations
 
-1. **Bearer Token**: Keep your P21 bearer token secure in config.json
-2. **Access Control**: Consider adding authentication to the web UI
-3. **Network**: Run behind firewall or VPN for production use
-4. **Config File**: Never commit config.json with real credentials
+1. **Credentials**: Keep your `.env` file secure - never commit to version control
+2. **P21 Credentials**: Store only in `.env` file, not in config.json
+3. **Access Control**: Consider adding authentication to the web UI
+4. **Network**: Run behind firewall or VPN for production use
+5. **File Permissions**: Ensure `.env` has restricted read permissions (chmod 600)
 
 ## Support
 

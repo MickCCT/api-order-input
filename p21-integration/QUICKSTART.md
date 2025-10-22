@@ -13,8 +13,26 @@ This will install all required Node.js packages including Express, SQLite, Winst
 
 ## Step 2: Configure the System
 
+### Set Up Environment Variables
+
 ```bash
-cd ../config
+cd ../
+cp .env.example .env
+```
+
+Edit `.env` and add your P21 credentials:
+
+```env
+ERP_USERNAME=your_p21_username
+ERP_PASSWORD=your_p21_password
+```
+
+**Important**: The system will automatically obtain fresh bearer tokens using these credentials. Tokens expire after ~60 minutes, but the system handles this automatically.
+
+### Set Up Configuration File
+
+```bash
+cd config
 cp config.example.json config.json
 ```
 
@@ -24,16 +42,14 @@ Edit `config.json` and update these critical fields:
 
 ```json
 "p21": {
-  "middlewareUrl": "https://your-p21-server.com",
-  "bearerToken": "YOUR_BEARER_TOKEN_HERE",
+  "middlewareUrl": "https://crosscreek-api.epicordistribution.com",
   "companyId": "YOUR_COMPANY_ID",
   "locationId": "YOUR_LOCATION_ID"
 }
 ```
 
 **Where to find these values:**
-- **middlewareUrl**: Your P21 middleware server URL (ask your IT admin or Epicor rep)
-- **bearerToken**: Generate in P21 admin panel or request from Epicor
+- **middlewareUrl**: Already set to Cross Creek's P21 server
 - **companyId**: Your company identifier in P21
 - **locationId**: Your warehouse/location identifier in P21
 

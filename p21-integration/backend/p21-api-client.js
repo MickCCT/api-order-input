@@ -1,16 +1,73 @@
 const axios = require('axios');
 const xml2js = require('xml2js');
 const logger = require('./logger');
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 class P21ApiClient {
   constructor(config) {
     this.config = config;
     this.baseUrl = `${config.middlewareUrl}${config.endpoint}`;
-    this.bearerToken = config.bearerToken;
+    this.tokenBaseUrl = `${config.middlewareUrl}/api/security/token/`;
+    this.bearerToken = null;
+    this.tokenExpiry = null;
     this.xmlBuilder = new xml2js.Builder({
       xmldec: { version: '1.0', encoding: 'UTF-8' }
     });
     this.xmlParser = new xml2js.Parser();
+
+    // Get credentials from environment variables
+    this.username = process.env.ERP_USERNAME;
+    this.password = process.env.ERP_PASSWORD;
+
+    if (!this.username || !this.password) {
+      throw new Error('ERP_USERNAME and ERP_PASSWORD must be set in .env file');
+    }
+  }
+
+  /**
+   * Get a fresh bearer token from P21 API
+   * @returns {Promise<string>} Bearer token
+   */
+  async getToken() {
+    // If we have a valid token that hasn't expired, return it
+    if (this.bearerToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
+      logger.debug('Using cached bearer token');
+      return this.bearerToken;
+    }
+
+    try {
+      logger.info('Requesting new bearer token from P21...');
+
+      const tokenResponse = await axios.post(
+        this.tokenBaseUrl,
+        {},
+        {
+          headers: {
+            'username': this.username,
+            'password': this.password,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          timeout: 10000
+        }
+      );
+
+      this.bearerToken = tokenResponse.data.AccessToken;
+
+      // Set expiry to 50 minutes from now (tokens typically valid for 60 minutes)
+      // This ensures we refresh before it actually expires
+      this.tokenExpiry = Date.now() + (50 * 60 * 1000);
+
+      logger.info('Bearer token obtained successfully');
+      return this.bearerToken;
+
+    } catch (error) {
+      logger.error('Error obtaining bearer token', {
+        message: error.message,
+        response: error.response?.data
+      });
+      throw new Error(`Failed to obtain bearer token: ${error.message}`);
+    }
   }
 
   /**
@@ -20,6 +77,9 @@ class P21ApiClient {
    */
   async submitOrder(orderXml) {
     try {
+      // Get a fresh token (will use cached if still valid)
+      const token = await this.getToken();
+
       logger.info('Submitting order to P21...');
 
       const response = await axios.post(
@@ -28,7 +88,7 @@ class P21ApiClient {
         {
           headers: {
             'Content-Type': 'application/xml',
-            'Authorization': `Bearer ${this.bearerToken}`,
+            'Authorization': `Bearer ${token}`,
             'Accept': 'application/xml'
           },
           timeout: 30000 // 30 second timeout
@@ -72,11 +132,13 @@ class P21ApiClient {
    */
   async getOrder(orderId) {
     try {
+      const token = await this.getToken();
+
       const response = await axios.get(
         `${this.baseUrl}/${orderId}`,
         {
           headers: {
-            'Authorization': `Bearer ${this.bearerToken}`,
+            'Authorization': `Bearer ${token}`,
             'Accept': 'application/xml'
           }
         }
@@ -107,19 +169,15 @@ class P21ApiClient {
    */
   async validateConnection() {
     try {
-      // Attempt a simple request to verify connection
-      const response = await axios.get(
-        this.config.middlewareUrl,
-        {
-          headers: {
-            'Authorization': `Bearer ${this.bearerToken}`
-          },
-          timeout: 5000
-        }
-      );
+      // Test by getting a fresh token
+      const token = await this.getToken();
 
-      logger.info('P21 connection validated successfully');
-      return true;
+      if (token) {
+        logger.info('P21 connection validated successfully - token obtained');
+        return true;
+      }
+
+      return false;
     } catch (error) {
       logger.error('P21 connection validation failed', {
         error: error.message
