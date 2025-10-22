@@ -1,0 +1,20 @@
+{
+    "name": "Download Orders",
+    "version": "1.0.0",
+    "description": "Download Orders",
+    "manifest_version": 3,
+    "author": "Mick Kopp",
+    "permissions": [
+        "tabs"
+    ],
+    "action":{
+        "default_popup": "popup.html",
+        "default_title": "Download orders App"
+    },
+    "content_scripts": [
+        {
+        "matches": ["https://www.ebay.com/sh/reports/downloads","https://sellercentral.amazon.com/order-reports-and-feeds/reports/newOrders"],
+        "js": ["index.js"]
+        }
+    ]
+}

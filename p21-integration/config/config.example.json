@@ -1,0 +1,38 @@
+{
+  "p21": {
+    "middlewareUrl": "https://your-p21-middleware-server.com",
+    "apiVersion": "v2",
+    "endpoint": "/uiserver0/api/v2/transaction",
+    "bearerToken": "YOUR_BEARER_TOKEN_HERE",
+    "companyId": "YOUR_COMPANY_ID",
+    "locationId": "YOUR_LOCATION_ID",
+    "defaultCustomerId": {
+      "amazon": "110690",
+      "ebay": "109408",
+      "walmart": "127129"
+    }
+  },
+  "server": {
+    "port": 3000,
+    "host": "localhost"
+  },
+  "fileWatcher": {
+    "enabled": true,
+    "interval": 15000,
+    "paths": {
+      "downloads": "c:/Users/mick.CROSSCREEK100/OneDrive/Documents/Downloads",
+      "amazonMaster": "C:/Users/mick.CROSSCREEK100/Cross Creek Tractor Co., Inc/Ecommerce Digital Marketing Team - Documents/Amazon Order Input Program/master-amazon-order-data.json",
+      "ebayMaster": "C:/Users/mick.CROSSCREEK100/Cross Creek Tractor Co., Inc/Ecommerce Digital Marketing Team - Documents/Ebay Order Input Program/master-ebay-order-data.json"
+    }
+  },
+  "database": {
+    "path": "./data/orders.db"
+  },
+  "logging": {
+    "level": "info",
+    "file": "./data/logs/app.log"
+  },
+  "orderRetention": {
+    "daysToKeep": 30
+  }
+}
